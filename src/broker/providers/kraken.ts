@@ -245,59 +245,6 @@ class KrakenProvider extends AbstractBroker {
     }
   }
 
-  // private connectWebSocketServer() {
-  //   this.wss = new WebSocketServer({ port: 8080 });
-
-  //   this.wss.on("connection", (socket) => {
-  //     console.log("🔌 Client connected");
-
-  //     socket.on("message", async (data) => {
-  //       try {
-  //         const msg = JSON.parse(data.toString());
-  //         console.log("📩 Message received:", msg);
-
-  //         // Example: msg = { type: "placeOrder",  payload: {...} }
-
-  //         switch (msg.type) {
-  //           case "openOrders":
-  //             this.ws?.send(
-  //               JSON.stringify({
-  //                 event: "subscribe",
-  //                 feed: "open_orders_verbose",
-  //                 api_key: this.publicAPIkey,
-  //                 original_challenge: this.wsChallengeId,
-  //                 signed_challenge: this.wsSignedChallenge,
-  //               })
-  //             );
-  //         }
-
-  //         // const broker = createBroker(msg.broker, msg.options || {});
-
-  //         // if (msg.type === "placeOrder") {
-  //         //   broker.placeOrder(msg.payload);
-  //         //   socket.send(
-  //         //     JSON.stringify({
-  //         //       status: "ok",
-  //         //       type: "order",
-  //         //       payload: msg.payload,
-  //         //     })
-  //         //   );
-  //         // }
-
-  //         // Add more actions as needed
-  //       } catch (err: any) {
-  //         console.error("❌ Error handling message:", err);
-  //         socket.send(JSON.stringify({ status: "error", error: err.message }));
-  //       }
-  //     });
-
-  //     socket.on("close", () => {
-  //       console.log("❎ Client disconnected");
-  //     });
-  //   });
-  // }
-  ///////////
-
   private request({
     method = "GET",
     path = "",

@@ -16,9 +16,10 @@ const websocketProcess = () => {
 
         const broker = marketService.getBrokerUserFromToken(msg);
         // Example: msg = { type: "placeOrder",  payload: {...} }
-        broker.connectWebSocket();
 
-        broker.sendWSRequest(msg);
+        broker.connectWebSocket({ parentSocket: socket, ...msg });
+
+        // broker.sendWSRequest(msg);
 
         // const broker = createBroker(msg.broker, msg.options || {});
 

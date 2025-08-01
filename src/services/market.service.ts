@@ -16,7 +16,7 @@ class MarketService {
   getBrokerUserFromToken(requestBody: Record<string, any>) {
     const { token } = requestBody;
     const user = this.authService.verifyUserToken(token);
-    return this.getBrokerIdentifier(user);
+    return this.getBrokerIdentifier({ user });
   }
 
   async placeOrder(requestBody: Record<string, any>) {

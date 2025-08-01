@@ -14,8 +14,8 @@ export abstract class AbstractBroker implements IBroker {
   abstract openOrders(): Promise<Record<string, any>>;
   abstract getBalance(): Promise<Record<string, any>>;
   abstract getPositions(): Promise<Record<string, any>>;
-  abstract connectWebSocket(): void;
-  abstract sendWSRequest(item: Record<string, any>): void;
+  abstract connectWebSocket(item: Record<string, any>): void;
+  // abstract sendWSRequest(item: Record<string, any>): void;
 
   //	Get instruments/market data
   abstract getInstruments(): Promise<Record<string, any>>;

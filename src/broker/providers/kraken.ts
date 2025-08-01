@@ -171,8 +171,25 @@ class KrakenProvider extends AbstractBroker {
 
   /////////////////////
   ///WS///
-  connectWebSocket() {
+
+  private sendWSRequest(item: Record<string, any>) {
+    switch (item.type) {
+      case "openOrders":
+        this.ws?.send(
+          JSON.stringify({
+            event: "subscribe",
+            feed: "open_orders_verbose",
+            api_key: this.publicAPIkey,
+            original_challenge: this.wsChallengeId,
+            signed_challenge: this.wsSignedChallenge,
+          })
+        );
+    }
+  }
+
+  connectWebSocket(msgItem: Record<string, any>) {
     try {
+      const { parentSocket, ...item } = msgItem;
       if (this.ws && this.ws.readyState === WebSocket.OPEN) {
         this.ws.close();
       }
@@ -189,32 +206,45 @@ class KrakenProvider extends AbstractBroker {
         );
       });
 
-      /***
-       * TODO: Now a new websocket will be created for our client and it
-       * consumes this websocket.
-       *
-       */
-      // this.connectWebSocketServer();
-
       this.ws.on("message", (data) => {
         console.log({ data }, "On challenge");
         const parsed = JSON.parse(data.toString());
         if (parsed instanceof Object) {
           switch (parsed.event) {
             case "challenge":
+              // this.wsChallengeId = "226aee50-88fc-4618-a42a-34f7709570b2";
+              // this.wsSignedChallenge = this.sign({
+              //   message: this.wsChallengeId,
+              // });
               this.wsChallengeId = parsed.message;
-              this.wsSignedChallenge = this.sign({ message: parsed.message });
+              this.wsSignedChallenge = this.signWS({ message: parsed.message });
+              console.log(this.wsChallengeId, this.wsSignedChallenge);
+              this.sendWSRequest(item);
               break;
             case "subscribed":
-              console.log({ parsed }, "subscribed");
+              console.log({ parsed: JSON.stringify(parsed) }, "subscribed");
+              parentSocket?.send(
+                JSON.stringify({
+                  status: "ok",
+                  type: "subscribed",
+                  payload: parsed,
+                })
+              );
               break;
           }
 
           switch (parsed.feed) {
             case "open_orders_verbose_snapshot":
-
+            case "open_orders_verbose":
             case "open_orders_snapshot":
-              console.log({ parsed }, "open-orders");
+              console.log({ parsed: JSON.stringify(parsed) }, "open-orders");
+              parentSocket?.send(
+                JSON.stringify({
+                  status: "ok",
+                  type: "open_orders",
+                  payload: parsed,
+                })
+              );
               break;
           }
         }
@@ -223,25 +253,10 @@ class KrakenProvider extends AbstractBroker {
       });
 
       this.ws.on("close", () => {
-        console.log("Socket closed");
+        console.log("Kraken Socket closed");
       });
     } catch (err) {
       console.log({ err });
-    }
-  }
-
-  sendWSRequest(item: Record<string, any>) {
-    switch (item.type) {
-      case "openOrders":
-        this.ws?.send(
-          JSON.stringify({
-            event: "subscribe",
-            feed: "open_orders_verbose",
-            api_key: this.publicAPIkey,
-            original_challenge: this.wsChallengeId,
-            signed_challenge: this.wsSignedChallenge,
-          })
-        );
     }
   }
 
@@ -292,6 +307,24 @@ class KrakenProvider extends AbstractBroker {
     return createHmac("sha512", Buffer.from(this.privateAPIkey, "base64"))
       .update(message, "binary")
       .digest("base64");
+  }
+
+  private signWS({ message = "" }) {
+    // Step 1: SHA256 hash of the challenge
+    const sha256 = createHash("sha256");
+    sha256.update(Buffer.from(message, "utf8"));
+    const hashDigest = sha256.digest();
+
+    // Step 2: Base64-decode the API secret
+    const decodedSecret = Buffer.from(this.privateAPIkey, "base64");
+
+    // Step 3: HMAC-SHA512 using the decoded secret and hashDigest
+    const hmac = createHmac("sha512", decodedSecret);
+    hmac.update(hashDigest);
+    const hmacDigest = hmac.digest();
+
+    // Step 4: Base64 encode the result
+    return hmacDigest.toString("base64");
   }
 
   private mapToURLValues(object: Record<string, any>) {

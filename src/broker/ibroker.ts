@@ -6,6 +6,6 @@ export interface IBroker {
   cancelOrder(orderId: string): Promise<Record<string, any>>;
   getBalance(): Promise<Record<string, any>>;
   getPositions(): Promise<Record<string, any>>;
-  connectWebSocket(): void;
-  sendWSRequest(item: Record<string, any>): void;
+  connectWebSocket(item: Record<string, any>): void;
+  // sendWSRequest(item: Record<string, any>): void;
 }

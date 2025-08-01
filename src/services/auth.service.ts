@@ -17,6 +17,7 @@ class AuthService {
     if (!token) {
       throw "Invalid token";
     }
+
     return verifyToken(token);
   }
 
